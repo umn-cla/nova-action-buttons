@@ -133,4 +133,26 @@ class ActionButton extends Field
     {
         return $this->withMeta(['hasTooltip' => true, 'tooltip' => $tooltip]);
     }
+
+    /**
+     * Display button inline instead of in a panel row
+     *
+     * @param bool $inline
+     * @return $this
+     */
+    public function inline(bool $inline = true): self
+    {
+        return $this->withMeta(compact('inline'));
+    }
+
+    /**
+     * Set the button variant/color scheme
+     *
+     * @param string $variant (primary|success|danger|secondary)
+     * @return $this
+     */
+    public function variant(string $variant): self
+    {
+        return $this->withMeta(compact('variant'));
+    }
 }

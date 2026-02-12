@@ -1,5 +1,18 @@
 <template>
-    <panel-item :field="field">
+    <div v-if="field.inline" class="inline-block mr-2">
+        <action-button v-bind="{field, fireAction}"/>
+        <portal to="modals" transition="fade-transition">
+            <component
+                v-if="confirmActionModalOpened"
+                v-bind="options"
+                class="text-left"
+                :is="selectedAction.component"
+                @close="closeConfirmationModal"
+                @confirm="executeAction">
+            </component>
+        </portal>
+    </div>
+    <panel-item v-else :field="field">
         <template v-slot:value>
             <action-button v-bind="{field, fireAction}"/>
             <portal to="modals" transition="fade-transition">

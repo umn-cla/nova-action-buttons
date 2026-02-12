@@ -57,7 +57,6 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
         Nova.$progress.start()
 
         let responseType = selectedAction.responseType ?? 'json'
-
         Nova.request(
             {
                 url: `/nova-api/${resourceName}/action`,
@@ -76,7 +75,6 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
                 responseType,
             })
             .then(async response => {
-
                 confirmActionModalOpened.value = false
                 //await this.fetchPolicies()
                 _handleActionResponse(response)
@@ -119,7 +117,18 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
      */
     const _actionFormData = () => {
         return tap(new FormData(), formData => {
-            formData.append('resources', selectedResources)
+            // Handle both array and single resource
+            if (Array.isArray(selectedResources)) {
+                selectedResources.forEach(resource => {
+                    const resourceValue = typeof resource === 'object' && resource?.id?.value 
+                        ? resource.id.value 
+                        : resource
+                    formData.append('resources[]', resourceValue)
+                })
+            } else {
+                formData.append('resources', selectedResources)
+            }
+            
             each(selectedAction?.fields, field => {
                 field.fill(formData)
             })
@@ -139,7 +148,14 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
         Nova.$emit('refresh-resources')
 
         if (typeof callback === 'function') callback()
-        if (isOnDetail) Nova.visit(`/resources/${resourceName}/${resourceId}`)
+        
+        // Only navigate back to detail if on detail page
+        if (isOnDetail && resourceId) {
+            const id = typeof resourceId === 'object' && resourceId?.value 
+                ? resourceId.value 
+                : resourceId
+            Nova.visit(`/resources/${resourceName}/${id}`)
+        }
     }
 
 
@@ -179,6 +195,9 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
                 window.URL.revokeObjectURL(url)
             })
 
+        } else if (data.event) {
+            Nova.$emit(data.event.key, data.event.payload)
+            
         } else if (data.modal) {
 
             //this.actionResponseData = data
@@ -188,7 +207,7 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
             _emitResponseCallback(() => Nova.success(data.message))
 
         } else if (data.deleted) {
-            _emitResponseCallback()
+            _emitResponseCallback(() => Nova.success(data.message || __('The resource was deleted.')))
 
         } else if (data.danger) {
             _emitResponseCallback(() => Nova.error(data.danger))
@@ -196,15 +215,19 @@ export const useHandleAction = ({queryString, resourceId, resourceName, selected
         } else if (data.download) {
             _emitResponseCallback(() => {
                 let link = document.createElement('a')
-                link.href = data.download
-                link.download = data.name
+                link.href = data.download.url || data.download
+                link.download = data.download.name || 'download'
                 document.body.appendChild(link)
                 link.click()
                 document.body.removeChild(link)
             })
 
         } else if (data.redirect) {
-            window.location = data.redirect
+            if (data.redirect.openInNewTab) {
+                _emitResponseCallback(() => window.open(data.redirect.url, '_blank'))
+            } else {
+                window.location = data.redirect.url || data.redirect
+            }
 
         } else if (data.visit) {
             Nova.visit({url: Nova.url(data.visit.path, data.visit.options), remote: false})

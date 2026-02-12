@@ -12,7 +12,9 @@
 
         <!-- Icon -->
         <div v-if="hasIcon" :class="{'ml-2': text}">
-            <Icon v-if="icon" :type="icon" />
+            <svg v-if="icon && iconPaths[icon]" class="w-5 h-5 inline" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" :d="iconPaths[icon]"></path>
+            </svg>
             <span v-if="iconHtml" v-html="iconHtml"></span>
             <img v-if="iconUrl" :alt="title" :src="iconUrl" class="w-6 h-6 inline" />
         </div>
@@ -29,6 +31,13 @@
 
     // Composables
     import {computed, ref} from 'vue';
+
+    // Heroicon SVG paths for common icons
+    const iconPaths = {
+        'envelope': 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
+        'check-circle': 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+        'x-circle': 'M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    };
 
     // Props
     const props = defineProps({
@@ -49,6 +58,7 @@
     const customStyles = computed(() => props?.field?.styles || []);
     const customClasses = computed(() => props?.field?.classes || []);
     const asToolbarButton = computed(() => props?.field?.asToolbarButton === true);
+    const variant = computed(() => props?.field?.variant || 'primary');
 
     // Computed
     // Icon
@@ -79,11 +89,23 @@
 
     // Computed
     // Get action button classes
-    const actionButtonClasses = computed(() => [
-        'flex-shrink-0', 'shadow', 'rounded', 'focus:outline-none', 'ring-primary-200', 'dark:ring-gray-600',
-        'focus:ring', 'bg-primary-500', 'hover:bg-primary-400', 'active:bg-primary-600',
-        'text-white', 'dark:text-gray-800', 'inline-flex', 'items-center', 'font-bold', 'px-2', 'mx-1', 'h-9', 'text-sm', 'flex-shrink-0',
-    ])
+    const actionButtonClasses = computed(() => {
+        const baseClasses = [
+            'flex-shrink-0', 'shadow-sm', 'rounded-md', 'focus:outline-none',
+            'focus:ring-2', 'focus:ring-offset-1',
+            'text-white', 'inline-flex', 'items-center', 'font-medium',
+            'px-3', 'h-9', 'text-sm', 'transition-colors', 'duration-150'
+        ];
+        
+        const variantClasses = {
+            primary: ['bg-blue-600', 'hover:bg-blue-700', 'focus:ring-blue-500'],
+            success: ['bg-green-600', 'hover:bg-green-700', 'focus:ring-green-500'],
+            danger: ['bg-red-600', 'hover:bg-red-700', 'focus:ring-red-500'],
+            secondary: ['bg-gray-600', 'hover:bg-gray-700', 'focus:ring-gray-500'],
+        };
+        
+        return [...baseClasses, ...(variantClasses[variant.value] || variantClasses.primary)];
+    })
 
     // Computed
     // Get toolbar button classes
