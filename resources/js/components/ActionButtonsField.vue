@@ -1,5 +1,5 @@
 <template>
-    <div class="flex align-center" :class="alignClasses">
+    <div class="flex items-center" :class="alignClasses">
         <template v-for="action in actions" :key="action?.key">
             <action-button v-bind="action"/>
         </template>

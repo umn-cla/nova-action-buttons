@@ -1,6 +1,6 @@
 <template>
-    <a href="#"
-       class="d-flex align-center"
+     <a href="#"
+         class="flex items-center"
        v-bind="actionOptions"
        @click.stop.prevent="fireAction"
        @mouseenter="onMouseEnterTooltip"
